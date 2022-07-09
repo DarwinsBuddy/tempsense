@@ -19,5 +19,5 @@ if __name__ == '__main__':
     if args.get('mock'):
         from .test.sensor import MockedDS18B20 as DS18B20
     else:
-        from sensor import DS18B20
+        from .sensor import DS18B20
     log_temp(DS18B20(), fmt=args.get("format"), path=args.get("output"))
