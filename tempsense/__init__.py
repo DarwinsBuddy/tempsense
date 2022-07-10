@@ -66,13 +66,19 @@ def _out(path, lines):
         write(path, "\n".join(lines))
 
 
-def log_temp(snsr, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", path=None):
+def map_device_names(names, mapping):
+    return [mapping[n] if n in mapping else n for n in names]
+
+
+def log_temp(snsr, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", path=None, device_mapping=None):
+    if device_mapping is None:
+        device_mapping = dict()
     out = partial(_out, path)
     try:
         formatter = plain if fmt == "plain" else csv
         prefixer = plain_prefix if fmt == "plain" else csv_prefix
         count = snsr.device_count()
-        names = snsr.device_names()
+        names = map_device_names(snsr.device_names(), device_mapping)
         print('[press ctrl+c to end the script]')
         print('Reading temperature, number of sensors: {}'.format(count))
         out(prefixer(names, unit))
