@@ -24,7 +24,7 @@ def _output_to_temp(output, unit="c"):
             return output * 9.0 / 5.0 + 32
     else:
         print(f"Unable to read temperature for sensor")
-        return None, None
+        return None
 
 
 def format_temp(t, pad=DEFAULT_PAD):
