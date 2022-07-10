@@ -2,6 +2,7 @@ import argparse
 import json
 
 from tempsense import log_temp
+from .logger import create_rotating_log
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--interval", type=int, default=1, help="read interval in sec")
@@ -30,11 +31,12 @@ if __name__ == '__main__':
         dmap = json.load(args.get("devices"))
     else:
         dmap = {}
+
     log_temp(DS18B20(),
              tz=args.get("timezone"),
              interval=args.get("interval"),
              unit=args.get("unit"),
              fmt=args.get("format"),
-             path=args.get("output"),
+             output=args.get("output"),
              device_mapping=dmap
-     )
+             )

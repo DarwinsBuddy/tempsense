@@ -4,6 +4,8 @@ from functools import partial
 
 import pytz
 
+from tempsense.logger import create_rotating_log
+
 deg = u'\xb0'  # degree sign
 
 DEFAULT_PAD = 25
@@ -59,40 +61,41 @@ def csv_prefix(names, unit="c", sep=";"):
     return text
 
 
-def _out(path, lines):
-    if path is None:
-        print("\n".join(lines))
+def _out(log, text):
+    if log is None:
+        print(text)
     else:
-        write(path, "\n".join(lines))
+        log.info(text)
 
 
 def map_device_names(names, mapping):
     return [mapping[n] if n in mapping else n for n in names]
 
 
-def log_temp(snsr, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", path=None, device_mapping=None):
+def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", device_mapping=None):
     if device_mapping is None:
         device_mapping = dict()
-    out = partial(_out, path)
     try:
         formatter = plain if fmt == "plain" else csv
         prefixer = plain_prefix if fmt == "plain" else csv_prefix
+
         count = snsr.device_count()
         names = map_device_names(snsr.device_names(), device_mapping)
+
+        if output is not None:
+            log = create_rotating_log(output, lambda stream: stream.write("\n".join(prefixer(names, unit))+"\n"))
+        else:
+            log = None
+        out = partial(_out, log)
+
         print('[press ctrl+c to end the script]')
         print('Reading temperature, number of sensors: {}'.format(count))
-        out(prefixer(names, unit))
         while True:
             temps = [_output_to_temp(snsr.temp(i), unit) for i in range(count)]
-            text = formatter(temps, tz=tz)
+            text = "\n".join(formatter(temps, tz=tz))
             out(text)
             time.sleep(interval)
 
     # Scavenging work after the end of the program
     except KeyboardInterrupt:
         print('Script end!')
-
-
-def write(path, text):
-    with open(path, 'a') as f:
-        f.write(text)
