@@ -1,53 +1,72 @@
+import datetime
 import time
 from functools import partial
 
+import pytz
+
 deg = u'\xb0'  # degree sign
 
+DEFAULT_PAD = 25
+DEFAULT_TZ = "UTC"
 
-def _output_to_temp(output):
+
+def get_timestamp(tz=DEFAULT_TZ):
+    return pytz.timezone(tz).localize(datetime.datetime.utcnow()).isoformat()
+
+
+def _output_to_temp(output, unit="c"):
     if output is not None:
-        celsius = output
-        fahrenheit = output * 9.0 / 5.0 + 32
-        return celsius, fahrenheit
+        if unit == "c":  # celsius
+            return output
+        else:  # fahrenheit
+            return output * 9.0 / 5.0 + 32
     else:
         print(f"Unable to read temperature for sensor")
         return None, None
 
 
-def plain_prefix(names, pad=25):
-    count = len(names)
-    text = ("-" * 26 * count) + "\n"
-    text += ("|".join([f'{names[i]}'.center(pad) for i in range(count)])) + "\n"
-    return text
-
-
-def plain(temps, hpad=12):
-    count = len(temps)
-    text = ("|".join([f'{deg}C'.center(hpad) + "|" + f'{deg}F'.center(hpad) for i in range(count)])) + "\n"
-    formatted_temps = [f'{c:.3f}'.center(hpad) + "|" + f'{f:.3f}'.center(hpad) for (c, f) in temps]
-    text += ("|".join(formatted_temps)) + "\n"
-    return text
-
-
-def csv(temps, sep=";"):
-    formatted_temps = [f'{c:.3f}{sep}{f:.3f}' for (c, f) in temps]
-    return (sep.join(formatted_temps)) + "\n"
-
-
-def csv_prefix(names, sep=";"):
-    count = len(names)
-    text = (sep.join([f'{names[i]} {deg}C' + ";" + f'{names[i]} {deg}F' for i in range(count)])) + "\n"
-    return text
-
-
-def _out(path, text):
-    if path is None:
-        print(text)
+def format_temp(t, pad=DEFAULT_PAD):
+    if t is not None:
+        return f'{t:.3f}'.center(pad)
     else:
-        write(path, text)
+        return ''.center(pad)
 
 
-def log_temp(snsr, interval=1, fmt="plain", path=None):
+def plain_prefix(names, unit="c", pad=DEFAULT_PAD):
+    count = len(names) + 1
+    text = ["-" * (pad+1) * count]
+    snsrs = [f'{names[i]} {deg}{unit.upper()}'.center(pad) for i in range(count - 1)]
+    text += ["|".join(["time"] + snsrs)]
+    return text
+
+
+def plain(temps, tz=DEFAULT_TZ):
+    timestamp = [get_timestamp(tz)]
+    formatted_temps = [format_temp(t) for t in temps]
+    return [("|".join(timestamp + formatted_temps))]
+
+
+def csv(temps, tz=DEFAULT_TZ, sep=";"):
+    timestamp = [get_timestamp(tz)]
+    formatted_temps = [f'{format_temp(t,0)}' for t in temps]
+    return [sep.join(timestamp + formatted_temps)]
+
+
+def csv_prefix(names, unit="c", sep=";"):
+    count = len(names)
+    snsrs = [f'{names[i]} {deg}{unit.upper()}' for i in range(count)]
+    text = [sep.join(["time"] + snsrs)]
+    return text
+
+
+def _out(path, lines):
+    if path is None:
+        print("\n".join(lines))
+    else:
+        write(path, "\n".join(lines))
+
+
+def log_temp(snsr, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", path=None):
     out = partial(_out, path)
     try:
         formatter = plain if fmt == "plain" else csv
@@ -56,11 +75,10 @@ def log_temp(snsr, interval=1, fmt="plain", path=None):
         names = snsr.device_names()
         print('[press ctrl+c to end the script]')
         print('Reading temperature, number of sensors: {}'.format(count))
-
-        out(prefixer(names))
+        out(prefixer(names, unit))
         while True:
-            temps = [_output_to_temp(snsr.temp(i)) for i in range(count)]
-            text = formatter(temps)
+            temps = [_output_to_temp(snsr.temp(i), unit) for i in range(count)]
+            text = formatter(temps, tz=tz)
             out(text)
             time.sleep(interval)
 

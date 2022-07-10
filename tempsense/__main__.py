@@ -7,6 +7,8 @@ ap.add_argument("-i", "--interval", type=int, default=1, help="read interval in 
 ap.add_argument("-f", "--format", choices=['csv', 'plain'], help="Output format", default="plain")
 ap.add_argument("-o", "--output", type=str, help="Output path", default=None)
 ap.add_argument("-m", "--mock", action='store_true', help="Mock temperatures", default=False)
+ap.add_argument("-u", "--unit", choices=['c', 'f'], help="Temperature unit (c: Celsius, f: Fahrenheit)", default='c')
+ap.add_argument("-tz", "--timezone", type=str, help="Temperature unit (c: Celsius, f: Fahrenheit)", default='utc')
 args = vars(ap.parse_args())
 
 
@@ -20,4 +22,4 @@ if __name__ == '__main__':
         from .test.sensor import MockedDS18B20 as DS18B20
     else:
         from .sensor import DS18B20
-    log_temp(DS18B20(), fmt=args.get("format"), path=args.get("output"))
+    log_temp(DS18B20(), tz=args.get("timezone"), unit=args.get("unit"), fmt=args.get("format"), path=args.get("output"))
