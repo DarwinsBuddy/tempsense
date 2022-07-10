@@ -9,12 +9,12 @@ class SensorData:
         self.device = device
         self.temp_celsius = temp_celsius
 
-    def get_temp(self, unit='c'):
+    def get_temp(self, unit='c', decimal_places=3):
         if self.temp_celsius is not None:
             if unit == 'c':
-                return self.temp_celsius
+                return round(self.temp_celsius, decimal_places)
             elif unit == 'f':
-                return self.temp_celsius * 9.0 / 5.0 + 32
+                return round(self.temp_celsius * 9.0 / 5.0 + 32, decimal_places)
             else:
                 print(f"Unable to read temperature for sensor")
                 return None
@@ -45,7 +45,6 @@ class DS18B20:
     def device_names(self):
         return [self.device_name(i) for i in range(self._count_devices)]
 
-    # (one tab)
     def _read_temp(self, idx) -> Optional[float]:
         f = open(self._devices[idx], 'r')
         raw_temp_lines = f.readlines()

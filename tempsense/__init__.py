@@ -1,57 +1,47 @@
 import time
-from functools import partial
+from typing import Optional
 
-from tempsense.logger import create_rotating_log, get_format, DEFAULT_TZ, output_to_temp
-
-
-def _out(log, text):
-    if log is None:
-        print(text)
-    else:
-        log.info(text)
+from tempsense import mqtt
+from tempsense.mqtt import MQTTClient
 
 
-def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_mapping=None,
-             interval=1,
-             log_rotate_interval=10,
-             log_rotate_unit="s",
-             log_backup_count=5
-             ):
+def measure_temp(snsr,
+                 unit="c",
+                 device_mapping=None,
+                 interval: int = 1,
+                 log=None,
+                 mqtt_client: Optional[MQTTClient] = None
+                 ):
     if device_mapping is None:
         device_mapping = dict()
     try:
-        prefixer, formatter = get_format(fmt)
-
         count = snsr.device_count()
         names = map_device_names(snsr.device_names(), device_mapping)
-        header = "\n".join(prefixer(names, unit))
-
-        print('[press ctrl+c to end the script]')
+        log.set_up(names)
+        print('Press ctrl+c to end the script')
         print('Reading temperature, number of sensors: {}'.format(count))
 
-        if output is not None:
-            log = create_rotating_log(
-                output,
-                lambda stream: stream.write(header+"\n"),
-                when=log_rotate_unit,
-                interval=log_rotate_interval,
-                backupCount=log_backup_count
-            )
-        else:
-            log = None
-            print(header)
-        out = partial(_out, log)
+        log.header()
 
         while True:
             temps = [snsr.temp(i) for i in range(count)]
-            text = "\n".join(formatter(temps, tz=tz))
-            out(text)
+            log.line(temps)
+            if mqtt_client is not None:
+                for t in temps:
+                    if t.get_temp() is not None:
+                        mqtt_client.send(map_device_name(t.device, device_mapping), t.get_temp(unit=unit))
+                        # mqtt.pub(map_device_name(t.device, device_mapping), t.get_temp(unit=unit),
+                        #         broker=mqtt_broker,
+                        #         mqtt_auth={'username': mqtt_user, 'password': mqtt_password })
             time.sleep(interval)
 
-    # Scavenging work after the end of the program
     except KeyboardInterrupt:
-        print('Script end!')
+        print('Exiting...')
+
+
+def map_device_name(name, mapping):
+    return mapping[name]
 
 
 def map_device_names(names, mapping):
-    return [mapping[n] if n in mapping else n for n in names]
+    return [map_device_name(n, mapping) if n in mapping else n for n in names]

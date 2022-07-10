@@ -1,4 +1,5 @@
 {
-    "@mocked - 1": "Mock-1",
-    "@mocked - 3": "Mock-3"
+    "@Mock1": "Mock-1",
+    "@Mock2": "Mock-2",
+    "@Mock3": "Mock-3"
 }

@@ -15,7 +15,7 @@ class MockedDS18B20(DS18B20):
 
     @staticmethod
     def _mocked_name(i):
-        return f"@mocked - {i}"
+        return f"@Mock{i}"
 
     def device_name(self, i):
         return self._devices[i]

@@ -1,0 +1,13 @@
+ sensor:
+ - platform: mqtt
+   name: "Temperature Mock-1"
+   state_topic: "home-assistant/ds18b20/Mock-1"
+   unit_of_measurement: "°C"
+ - platform: mqtt
+   name: "Temperature Mock-2"
+   state_topic: "home-assistant/ds18b20/Mock-2"
+   unit_of_measurement: "°C"
+ - platform: mqtt
+   name: "Temperature Mock-3"
+   state_topic: "home-assistant/ds18b20/Mock-3"
+   unit_of_measurement: "°C"
