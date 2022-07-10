@@ -35,15 +35,16 @@ def format_temp(t, pad=DEFAULT_PAD):
 
 
 def plain_prefix(names, unit="c", pad=DEFAULT_PAD):
-    count = len(names) + 1
-    text = ["-" * (pad+1) * count]
-    snsrs = [f'{names[i]} {deg}{unit.upper()}'.center(pad) for i in range(count - 1)]
-    text += ["|".join(["time"] + snsrs)]
+    count = len(names)
+    time_pad = 34
+    text = ["-" * ((time_pad+1) + ((pad+1) * count))]
+    snsrs = [f'{names[i]} {deg}{unit.upper()}'.center(pad) for i in range(count)]
+    text += ["|".join(["time".center(time_pad)] + snsrs)]
     return text
 
 
 def plain(temps, tz=DEFAULT_TZ):
-    timestamp = [get_timestamp(tz)]
+    timestamp = [get_timestamp(tz).center(34)]
     formatted_temps = [format_temp(t) for t in temps]
     return [("|".join(timestamp + formatted_temps))]
 
@@ -86,21 +87,24 @@ def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_map
 
         count = snsr.device_count()
         names = map_device_names(snsr.device_names(), device_mapping)
+        header = "\n".join(prefixer(names, unit))
+
+        print('[press ctrl+c to end the script]')
+        print('Reading temperature, number of sensors: {}'.format(count))
 
         if output is not None:
             log = create_rotating_log(
                 output,
-                lambda stream: stream.write("\n".join(prefixer(names, unit))+"\n"),
+                lambda stream: stream.write(header+"\n"),
                 when=log_rotate_unit,
                 interval=log_rotate_interval,
                 backupCount=log_backup_count
             )
         else:
             log = None
+            print(header)
         out = partial(_out, log)
 
-        print('[press ctrl+c to end the script]')
-        print('Reading temperature, number of sensors: {}'.format(count))
         while True:
             temps = [_output_to_temp(snsr.temp(i), unit) for i in range(count)]
             text = "\n".join(formatter(temps, tz=tz))
