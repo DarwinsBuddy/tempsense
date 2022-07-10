@@ -1,65 +1,7 @@
-import datetime
 import time
 from functools import partial
 
-import pytz
-
-from tempsense.logger import create_rotating_log
-
-deg = u'\xb0'  # degree sign
-
-DEFAULT_PAD = 25
-DEFAULT_TZ = "UTC"
-
-
-def get_timestamp(tz=DEFAULT_TZ):
-    return pytz.timezone(tz).localize(datetime.datetime.utcnow()).isoformat()
-
-
-def _output_to_temp(output, unit="c"):
-    if output is not None:
-        if unit == "c":  # celsius
-            return output
-        else:  # fahrenheit
-            return output * 9.0 / 5.0 + 32
-    else:
-        print(f"Unable to read temperature for sensor")
-        return None
-
-
-def format_temp(t, pad=DEFAULT_PAD):
-    if t is not None:
-        return f'{t:.3f}'.center(pad)
-    else:
-        return ''.center(pad)
-
-
-def plain_prefix(names, unit="c", pad=DEFAULT_PAD):
-    count = len(names)
-    time_pad = 34
-    text = ["-" * ((time_pad+1) + ((pad+1) * count))]
-    snsrs = [f'{names[i]} {deg}{unit.upper()}'.center(pad) for i in range(count)]
-    text += ["|".join(["time".center(time_pad)] + snsrs)]
-    return text
-
-
-def plain(temps, tz=DEFAULT_TZ):
-    timestamp = [get_timestamp(tz).center(34)]
-    formatted_temps = [format_temp(t) for t in temps]
-    return [("|".join(timestamp + formatted_temps))]
-
-
-def csv(temps, tz=DEFAULT_TZ, sep=";"):
-    timestamp = [get_timestamp(tz)]
-    formatted_temps = [f'{format_temp(t,0)}' for t in temps]
-    return [sep.join(timestamp + formatted_temps)]
-
-
-def csv_prefix(names, unit="c", sep=";"):
-    count = len(names)
-    snsrs = [f'{names[i]} {deg}{unit.upper()}' for i in range(count)]
-    text = [sep.join(["time"] + snsrs)]
-    return text
+from tempsense.logger import create_rotating_log, get_format, DEFAULT_TZ, output_to_temp
 
 
 def _out(log, text):
@@ -67,10 +9,6 @@ def _out(log, text):
         print(text)
     else:
         log.info(text)
-
-
-def map_device_names(names, mapping):
-    return [mapping[n] if n in mapping else n for n in names]
 
 
 def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_mapping=None,
@@ -82,8 +20,7 @@ def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_map
     if device_mapping is None:
         device_mapping = dict()
     try:
-        formatter = plain if fmt == "plain" else csv
-        prefixer = plain_prefix if fmt == "plain" else csv_prefix
+        prefixer, formatter = get_format(fmt)
 
         count = snsr.device_count()
         names = map_device_names(snsr.device_names(), device_mapping)
@@ -106,7 +43,7 @@ def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_map
         out = partial(_out, log)
 
         while True:
-            temps = [_output_to_temp(snsr.temp(i), unit) for i in range(count)]
+            temps = [snsr.temp(i) for i in range(count)]
             text = "\n".join(formatter(temps, tz=tz))
             out(text)
             time.sleep(interval)
@@ -114,3 +51,7 @@ def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_map
     # Scavenging work after the end of the program
     except KeyboardInterrupt:
         print('Script end!')
+
+
+def map_device_names(names, mapping):
+    return [mapping[n] if n in mapping else n for n in names]

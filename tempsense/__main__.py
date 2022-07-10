@@ -4,7 +4,7 @@ import json
 from tempsense import log_temp
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--interval", type=int, default=1, help="read interval in sec")
+ap.add_argument("-i", "--interval", type=int, default=10, help="read interval in sec")
 ap.add_argument("-f", "--format", choices=['csv', 'plain'], help="Output format", default="plain")
 ap.add_argument("-o", "--output", type=str, help="Output path", default=None)
 ap.add_argument("-m", "--mock", action='store_true', help="Mock temperatures", default=False)
@@ -15,7 +15,7 @@ ap.add_argument("-d", "--devices", type=argparse.FileType('r', encoding='UTF-8')
 ap.add_argument("-rb", "--rotate_backup", type=int, default=7, help="log backup count (default: 7)")
 ap.add_argument("-ri", "--rotate_interval", type=int, default=1,
                 help="rotate interval in [ru] units (default: 1)")
-ap.add_argument("-ru", "--rotate_unit", choices=['s', 'm', 'h', 'd', 'midnight'], default='midnight',
+ap.add_argument("-ru", "--rotate_unit", choices=['s', 'm', 'h', 'd', 'midnight'], default='d',
                 help="""
                     log rotate interval unit
                     s: sec

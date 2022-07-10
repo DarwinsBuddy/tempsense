@@ -1,6 +1,27 @@
 import os
 import glob
 import time
+from typing import Optional
+
+
+class SensorData:
+    def __init__(self, device, temp_celsius):
+        self.device = device
+        self.temp_celsius = temp_celsius
+
+    def get_temp(self, unit='c'):
+        if self.temp_celsius is not None:
+            if unit == 'c':
+                return self.temp_celsius
+            elif unit == 'f':
+                return self.temp_celsius * 9.0 / 5.0 + 32
+            else:
+                print(f"Unable to read temperature for sensor")
+                return None
+
+    def format_temp(self, unit='c'):
+        t = self.get_temp(unit)
+        return f'{t:.3f}' if t is not None else ''
 
 
 class DS18B20:
@@ -8,36 +29,34 @@ class DS18B20:
     def _setup(self):
         os.system('modprobe w1-gpio')
         os.system('modprobe w1-therm')
-        base_dir = '/sys/bus/w1/devices/'
-        device_folder = glob.glob(base_dir + '28*')
+        self.base_dir = '/sys/bus/w1/devices/'
+        device_folder = glob.glob(self.base_dir + '28*')
         self._count_devices = len(device_folder)
         self._devices = list()
-        i = 0
-        while i < self._count_devices:
-            self._devices.append(device_folder[i] + '/w1_slave')
-            i += 1
+        self._devices = [device_folder[i] + '/w1_slave' for i in range(self._count_devices)]
 
     def __init__(self, retries=5):
         self.retries = retries
         self._setup()
 
+    def device_name(self, i):
+        return self._devices[i][len(self.base_dir):35]
+
     def device_names(self):
-        names = list()
-        for i in range(self._count_devices):
-            names.append(self._devices[i])
-            temp = names[i][20:35]
-            names[i] = temp
-        return names
+        return [self.device_name(i) for i in range(self._count_devices)]
 
     # (one tab)
-    def _read_temp(self, index):
-        f = open(self._devices[index], 'r')
+    def _read_temp(self, idx) -> Optional[float]:
+        f = open(self._devices[idx], 'r')
         raw_temp_lines = f.readlines()
         f.close()
-        return raw_temp_lines
+        if len(raw_temp_lines) > 0 and (raw_temp_lines[0].strip()[-3:] == 'YES'):
+            return self._parse_temp(raw_temp_lines)
+        else:
+            return None
 
     @staticmethod
-    def _parse_temp(raw_temp_lines):
+    def _parse_temp(raw_temp_lines) -> Optional[float]:
         equals_pos = raw_temp_lines[1].find('t=')
         if equals_pos != -1:
             temp = raw_temp_lines[1][equals_pos + 2:]
@@ -46,22 +65,25 @@ class DS18B20:
             print("ERROR: could not read temperature: ", raw_temp_lines)
             return None
 
-    def temp(self, index=0):
-        raw_temp_lines = self._read_temp(index)
+    def temp(self, index=0) -> Optional[SensorData]:
         retries = self.retries
-        try:
-            while (len(raw_temp_lines) > 0) and (raw_temp_lines[0].strip()[-3:] != 'YES') and (retries > 0):
-                time.sleep(0.1)
-                raw_temp_lines = self._read_temp(index)
-                retries -= 1
+        if index >= len(self._devices):
+            print(f"ERROR: Unknown device with index={index} (count: {len(self._devices)}")
+            return None
+        dev_name = self.device_name(index)
+        while True:
+            try:
+                temp_c = self._read_temp(index)
+            except Exception as e:
+                print("ERROR: ", e)
+                temp_c = None
+            if temp_c is not None:
+                return SensorData(device=dev_name, temp_celsius=temp_c)
             if retries == 0:
                 print("ERROR: retries exceeded")
-                return None
-
-            return self._parse_temp(raw_temp_lines)
-        except Exception as e:
-            print("ERROR: ", e)
-            return None
+                return SensorData(device=dev_name, temp_celsius=None)
+            retries -= 1
+            time.sleep(0.1)
     
     def device_count(self):
         return self._count_devices
