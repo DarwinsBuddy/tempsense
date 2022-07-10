@@ -2,7 +2,6 @@ import argparse
 import json
 
 from tempsense import log_temp
-from .logger import create_rotating_log
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-i", "--interval", type=int, default=1, help="read interval in sec")
@@ -13,6 +12,19 @@ ap.add_argument("-u", "--unit", choices=['c', 'f'], help="Temperature unit (c: C
 ap.add_argument("-tz", "--timezone", type=str, help="Timezone (e.g. 'utc', 'Europe/Vienna')", default='utc')
 ap.add_argument("-d", "--devices", type=argparse.FileType('r', encoding='UTF-8'),
                 help="Path to json containing map for sensor name to human readable name", default=None)
+ap.add_argument("-rb", "--rotate_backup", type=int, default=7, help="log backup count (default: 7)")
+ap.add_argument("-ri", "--rotate_interval", type=int, default=1,
+                help="rotate interval in [ru] units (default: 1)")
+ap.add_argument("-ru", "--rotate_unit", choices=['s', 'm', 'h', 'd', 'midnight'], default='midnight',
+                help="""
+                    log rotate interval unit
+                    s: sec
+                    m: minutes
+                    h: hours
+                    d: days
+                    midnight: once a day interval ignored
+                    """)
+
 args = vars(ap.parse_args())
 
 
@@ -38,5 +50,8 @@ if __name__ == '__main__':
              unit=args.get("unit"),
              fmt=args.get("format"),
              output=args.get("output"),
-             device_mapping=dmap
+             device_mapping=dmap,
+             log_rotate_interval=args.get("rotate_interval"),
+             log_rotate_unit=args.get("rotate_unit"),
+             log_backup_count=args.get("rotate_backup")
              )

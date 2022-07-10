@@ -72,7 +72,12 @@ def map_device_names(names, mapping):
     return [mapping[n] if n in mapping else n for n in names]
 
 
-def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain", device_mapping=None):
+def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", fmt="plain", device_mapping=None,
+             interval=1,
+             log_rotate_interval=10,
+             log_rotate_unit="s",
+             log_backup_count=5
+             ):
     if device_mapping is None:
         device_mapping = dict()
     try:
@@ -83,7 +88,13 @@ def log_temp(snsr, output=None, tz=DEFAULT_TZ, unit="c", interval=1, fmt="plain"
         names = map_device_names(snsr.device_names(), device_mapping)
 
         if output is not None:
-            log = create_rotating_log(output, lambda stream: stream.write("\n".join(prefixer(names, unit))+"\n"))
+            log = create_rotating_log(
+                output,
+                lambda stream: stream.write("\n".join(prefixer(names, unit))+"\n"),
+                when=log_rotate_unit,
+                interval=log_rotate_interval,
+                backupCount=log_backup_count
+            )
         else:
             log = None
         out = partial(_out, log)

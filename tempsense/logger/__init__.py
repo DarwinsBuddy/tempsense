@@ -2,7 +2,7 @@ import logging
 from tempsense.logger.CustomTimedRotatingFileHandler import CustomTimedRotatingFileHandler
 
 
-def create_rotating_log(path, header_emitter):
+def create_rotating_log(path, header_emitter, **kwargs):
     """
     Creates a rotating log
     """
@@ -10,7 +10,7 @@ def create_rotating_log(path, header_emitter):
     logger.setLevel(logging.INFO)
 
     # add a rotating handler
-    handler = CustomTimedRotatingFileHandler(path, header_emitter, when="s", interval=10, backupCount=5)
+    handler = CustomTimedRotatingFileHandler(path, header_emitter, **kwargs)
     logger.addHandler(handler)
 
     return logger
