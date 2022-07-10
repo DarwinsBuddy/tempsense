@@ -22,4 +22,4 @@ if __name__ == '__main__':
         from .test.sensor import MockedDS18B20 as DS18B20
     else:
         from .sensor import DS18B20
-    log_temp(DS18B20(), tz=args.get("timezone"), unit=args.get("unit"), fmt=args.get("format"), path=args.get("output"))
+    log_temp(DS18B20(), tz=args.get("timezone"), interval=args.get("interval"), unit=args.get("unit"), fmt=args.get("format"), path=args.get("output"))
