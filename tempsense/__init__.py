@@ -17,15 +17,18 @@ def measure_temp(snsr,
     try:
         count = snsr.device_count()
         names = map_device_names(snsr.device_names(), device_mapping)
-        log.set_up(names)
+        if log is not None:
+            log.set_up(names)
         print('Press ctrl+c to end the script')
-        print('Reading temperature, number of sensors: {}'.format(count))
+        print('Reading temperature from {} sensors'.format(count))
 
-        log.header()
+        if log is not None:
+            log.header()
 
         while True:
             temps = [snsr.temp(i) for i in range(count)]
-            log.line(temps)
+            if log is not None:
+                log.line(temps)
             if mqtt_client is not None:
                 for t in temps:
                     if t.get_temp() is not None:

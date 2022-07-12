@@ -1,0 +1,7 @@
+interval: 1
+quiet: true
+unit: c
+device_map: ./device_map.json
+mqtt_broker: 127.0.0.1
+mqtt_password: foo
+mqtt_user: bar

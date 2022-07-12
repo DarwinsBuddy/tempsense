@@ -1,6 +1,8 @@
 .idea
 log/
 
+.configs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
  *.pyc

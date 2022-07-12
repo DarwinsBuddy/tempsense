@@ -1,0 +1,5 @@
+interval: 1
+format: plain
+unit: c
+device_map: ./device_map.json
+timezone: Europe/Vienna
