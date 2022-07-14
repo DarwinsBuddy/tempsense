@@ -14,6 +14,7 @@ ap.add_argument("-m", "--mock", action='store_true', help="Mock temperatures", d
 ap.add_argument("-mqtt", "--mqtt_broker", type=str, help="MQTT Broker address", default=None)
 ap.add_argument("-user", "--mqtt_user", type=str, help="MQTT user", default=None)
 ap.add_argument("-pw", "--mqtt_password", type=str, help="MQTT password", default=None)
+ap.add_argument("-topic", "--mqtt_topic_prefix", type=str, help="MQTT topic_prefix", default='home-assistant/ds18b20')
 ap.add_argument("-u", "--unit", choices=['c', 'f'], help="Temperature unit (c: Celsius, f: Fahrenheit)", default='c')
 ap.add_argument("-tz", "--timezone", type=str, help="Timezone (e.g. 'utc', 'Europe/Vienna')", default='utc')
 ap.add_argument("-d", "--device_map", type=configargparse.FileType('r', encoding='UTF-8'),
@@ -54,6 +55,7 @@ if __name__ == '__main__':
         from tempsense.mqtt import MQTTClient
         mqtt_client = MQTTClient(
             broker=args.get('mqtt_broker'),
+            topic_prefix=args.get("mqtt_topic_prefix"),
             mqtt_auth={
                 "username": args.get('mqtt_user'),
                 "password": args.get('mqtt_password')
@@ -73,9 +75,8 @@ if __name__ == '__main__':
             log_backup_count=args.get("rotate_backup"),
             tz=args.get("timezone")
         )
-    measure_temp(DS18B20(),
+    measure_temp(DS18B20(dmap),
                  interval=args.get("interval"),
-                 device_mapping=dmap,
                  log=log,
                  mqtt_client=mqtt_client
                  )

@@ -3,11 +3,26 @@ sensor:
    name: "Temperature Sensor-1"
    state_topic: "home-assistant/ds18b20/Sensor-1"
    unit_of_measurement: "°C"
+   availability: [{
+        topic: "home-assistant/ds18b20/availability",
+        payload_available: "online",
+        payload_not_available: "offline"
+   }]
  - platform: mqtt
    name: "Temperature Sensor-2"
    state_topic: "home-assistant/ds18b20/Sensor-2"
    unit_of_measurement: "°C"
+   availability: [{
+        topic: "home-assistant/ds18b20/availability",
+        payload_available: "online",
+        payload_not_available: "offline"
+   }]
  - platform: mqtt
    name: "Temperature Sensor-3"
    state_topic: "home-assistant/ds18b20/Sensor-3"
    unit_of_measurement: "°C"
+   availability: [{
+        topic: "home-assistant/ds18b20/availability",
+        payload_available: "online",
+        payload_not_available: "offline"
+   }]

@@ -35,12 +35,16 @@ class DS18B20:
         self._devices = list()
         self._devices = [device_folder[i] + '/w1_slave' for i in range(self._count_devices)]
 
-    def __init__(self, retries=5):
+    def __init__(self, device_map=None, retries=5):
+        if device_map is None:
+            self.device_map = dict()
+        else:
+            self.device_map = device_map
         self.retries = retries
         self._setup()
 
     def device_name(self, i):
-        return self._devices[i][len(self.base_dir):35]
+        return self._map_device_name(self._devices[i][len(self.base_dir):35])
 
     def device_names(self):
         return [self.device_name(i) for i in range(self._count_devices)]
@@ -63,6 +67,12 @@ class DS18B20:
         else:
             print("ERROR: could not read temperature: ", raw_temp_lines)
             return None
+
+    def _map_device_name(self, name):
+        return self.device_map[name] if name in self.device_map else name
+
+    def _map_device_names(self, names):
+        return [self._map_device_name(n) for n in names]
 
     def temp(self, index=0) -> Optional[SensorData]:
         retries = self.retries
