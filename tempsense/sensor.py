@@ -21,7 +21,8 @@ class SensorData:
 
     def format_temp(self, unit='c'):
         t = self.get_temp(unit)
-        return f'{t:.3f}' if t is not None else ''
+        # TODO: make decimal places configurable
+        return f'{t:.0f}' if t is not None else ''
 
 
 class DS18B20:
