@@ -29,11 +29,12 @@ class MQTTClient:
             self.client.disconnect()
             self.connect()
 
-    def pub(self, temps, unit="c"):
+    def pub(self, temps, unit="c", decimal_places=0):
         self.send("availability", "online")
         for t in temps:
             if t.get_temp() is not None:
-                self.send(t.device, t.get_temp(unit=unit))
+                sensor_temp = t.get_temp(unit=unit)
+                self.send(t.device, f'{sensor_temp:.{decimal_places}f}')
 
     def close(self):
         self.send("availability", "offline")

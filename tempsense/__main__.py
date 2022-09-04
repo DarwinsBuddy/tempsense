@@ -16,6 +16,7 @@ ap.add_argument("-user", "--mqtt_user", type=str, help="MQTT user", default=None
 ap.add_argument("-pw", "--mqtt_password", type=str, help="MQTT password", default=None)
 ap.add_argument("-topic", "--mqtt_topic_prefix", type=str, help="MQTT topic_prefix", default='home-assistant/ds18b20')
 ap.add_argument("-u", "--unit", choices=['c', 'f'], help="Temperature unit (c: Celsius, f: Fahrenheit)", default='c')
+ap.add_argument("-dp", "--decimal_places", type=int, help="Precision in decimal places", default=0)
 ap.add_argument("-tz", "--timezone", type=str, help="Timezone (e.g. 'utc', 'Europe/Vienna')", default='utc')
 ap.add_argument("-d", "--device_map", type=configargparse.FileType('r', encoding='UTF-8'),
                 help="Path to json containing map for sensor name to human readable name", default=None)
@@ -70,6 +71,7 @@ if __name__ == '__main__':
             args.get("output"),
             fmt=args.get("format"),
             unit=args.get("unit"),
+            decimal_places=args.get('decimal_places'),
             log_rotate_interval=args.get("rotate_interval"),
             log_rotate_unit=args.get("rotate_unit"),
             log_backup_count=args.get("rotate_backup"),

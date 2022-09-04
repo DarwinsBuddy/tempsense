@@ -19,10 +19,9 @@ class SensorData:
                 print(f"Unable to read temperature for sensor")
                 return None
 
-    def format_temp(self, unit='c'):
+    def format_temp(self, unit='c', decimal_places=0):
         t = self.get_temp(unit)
-        # TODO: make decimal places configurable
-        return f'{t:.0f}' if t is not None else ''
+        return f'{t:.{decimal_places}f}' if t is not None else ''
 
 
 class DS18B20:

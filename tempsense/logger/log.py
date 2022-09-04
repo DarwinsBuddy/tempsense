@@ -19,6 +19,7 @@ class Log:
                  log_backup_count: int = 5,
                  fmt="plain",
                  unit="c",
+                 decimal_places=0,
                  tz=DEFAULT_TZ
                  ):
         """
@@ -27,6 +28,7 @@ class Log:
         self.fmt = fmt
         self.tz = tz
         self.unit = unit
+        self.decimal_places = decimal_places
         self.log_rotate_unit = log_rotate_unit
         self.log_backup_count = log_backup_count
         self.path = path
@@ -101,5 +103,5 @@ class Log:
 
     def _line(self, sensor_data_list: [SensorData]):
         timestamp = [self.get_date().center(self.date_pad), self.get_time().center(self.time_pad)]
-        formatted_temps = [data.format_temp(self.unit).center(self.pad) for data in sensor_data_list]
+        formatted_temps = [data.format_temp(unit=self.unit, decimal_places=self.decimal_places).center(self.pad) for data in sensor_data_list]
         return self.sep.join(timestamp + formatted_temps)
