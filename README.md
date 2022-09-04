@@ -75,7 +75,8 @@ Use `-o=<log-file-path>` to enable rotating file logging, if this argument is om
 
   use `-user=<mqtt-user> -pw=<mqtt-pw>` (recommended)
 
-
+> Note:
+> Sensors' mqtt topics are the lower case name with ' ' replaced by '_', e.g. 'My Sensor 123' -> 'my_sensor_123'
 ### device mapping
 
 Create a simple json file and map serial numbers of **your** sensors to

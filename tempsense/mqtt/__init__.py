@@ -21,8 +21,9 @@ class MQTTClient:
         self.client.loop_start()
 
     def send(self, topic, value):
+        to = topic.lower().replace(" ", "_")
         try:
-            self.client.publish(f'{self.topic_prefix}/{topic}', value)
+            self.client.publish(f'{self.topic_prefix}/{to}', value)
         except Exception as e:
             print("ERROR - Unable to send MQTT msg", e)
             self.client.loop_stop(force=True)
