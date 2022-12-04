@@ -33,7 +33,7 @@ class MockedDS18B20(DS18B20):
     def device_names(self):
         return self._map_device_names(self._devices)
 
-    def _read_temp(self, idx) -> float:
+    def _read_temp(self, idx):
         return random.gauss(26, 5)
 
     def device_count(self):
