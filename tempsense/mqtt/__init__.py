@@ -3,6 +3,7 @@ import time
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 
+AVAILABILITY = "availability"
 
 DEFAULT_TOPIC_PREFIX = 'home-assistant/ds18b20'
 
@@ -14,7 +15,10 @@ class MQTTClient:
         self.mqtt_auth = mqtt_auth
         self.client = mqtt.Client("ha-client")
         self.client.username_pw_set(**mqtt_auth)
+        self.client.will_set(f'{self.topic_prefix}/{AVAILABILITY}', 'offline', 1, True)
+        print(f"Publishing {DEFAULT_TOPIC_PREFIX} on {self.broker}")
         self.connect()
+        self.send(AVAILABILITY, "online")
 
     def connect(self):
         self.client.connect(self.broker)
@@ -31,14 +35,14 @@ class MQTTClient:
             self.connect()
 
     def pub(self, temps, unit="c", decimal_places=0):
-        self.send("availability", "online")
+        self.send(AVAILABILITY, "online")
         for t in temps:
             if t.get_temp() is not None:
                 sensor_temp = t.get_temp(unit=unit)
                 self.send(t.device, f'{sensor_temp:.{decimal_places}f}')
 
     def close(self):
-        self.send("availability", "offline")
+        self.send(AVAILABILITY, "offline")
         time.sleep(1)
         self.client.disconnect()
 
